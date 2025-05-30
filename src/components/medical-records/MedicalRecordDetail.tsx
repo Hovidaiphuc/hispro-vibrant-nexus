@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, User, Calendar, Stethoscope, Pill, Edit, Download, Print } from "lucide-react";
+import { FileText, User, Calendar, Stethoscope, Pill, Edit, Download, Printer } from "lucide-react";
 
 interface MedicalRecord {
   id: string;
@@ -52,7 +51,7 @@ const MedicalRecordDetail = ({ record, onEdit, onClose }: MedicalRecordDetailPro
             Tải xuống
           </Button>
           <Button size="sm" variant="outline">
-            <Print className="w-4 h-4 mr-1" />
+            <Printer className="w-4 h-4 mr-1" />
             In
           </Button>
           <Button size="sm" onClick={onEdit} className="bg-medical-green hover:bg-medical-green/90">
