@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, User, Calendar, Stethoscope, Pill, Edit, Download, Printer } from "lucide-react";
+import ClinicalOrders from './ClinicalOrders';
+import ClinicalResults from './ClinicalResults';
+import PrescriptionSection from './PrescriptionSection';
+import ServiceOrders from './ServiceOrders';
 
 interface MedicalRecord {
   id: string;
@@ -32,6 +36,118 @@ interface MedicalRecordDetailProps {
 }
 
 const MedicalRecordDetail = ({ record, onEdit, onClose }: MedicalRecordDetailProps) => {
+  // Sample data for the new components
+  const sampleClinicalOrders = [
+    {
+      id: "CO001",
+      type: "lab" as const,
+      name: "Xét nghiệm máu tổng quát",
+      orderBy: "BS. Trần Thị Bình",
+      orderDate: "2025-05-28",
+      status: "completed" as const,
+      priority: "normal" as const,
+      notes: "Kiểm tra tình trạng sức khỏe tổng quát"
+    },
+    {
+      id: "CO002",
+      type: "imaging" as const,
+      name: "Chụp X-quang ngực",
+      orderBy: "BS. Trần Thị Bình",
+      orderDate: "2025-05-28",
+      status: "pending" as const,
+      priority: "normal" as const
+    }
+  ];
+
+  const sampleClinicalResults = [
+    {
+      id: "CR001",
+      testName: "Xét nghiệm máu tổng quát",
+      type: "lab" as const,
+      resultDate: "2025-05-28",
+      status: "normal" as const,
+      values: [
+        { parameter: "Hồng cầu", value: "4.5", reference: "4.0-5.5", unit: "M/μL" },
+        { parameter: "Bạch cầu", value: "7.2", reference: "4.5-11.0", unit: "K/μL" },
+        { parameter: "Hemoglobin", value: "14.2", reference: "12.0-16.0", unit: "g/dL" }
+      ],
+      interpretation: "Các chỉ số máu trong giới hạn bình thường"
+    }
+  ];
+
+  const samplePrescriptions = [
+    {
+      id: "PR001",
+      prescribedBy: "BS. Trần Thị Bình",
+      prescribedDate: "2025-05-28",
+      status: "active" as const,
+      medications: [
+        {
+          id: "M001",
+          name: "Amlodipine",
+          dosage: "5mg",
+          frequency: "1 lần/ngày",
+          duration: "30 ngày",
+          quantity: "30 viên",
+          instructions: "Uống sau ăn",
+          route: "Đường uống",
+          warnings: ["Tránh uống cùng grapefruit"]
+        },
+        {
+          id: "M002",
+          name: "Vitamin D3",
+          dosage: "1000IU",
+          frequency: "1 lần/ngày",
+          duration: "30 ngày",
+          quantity: "30 viên",
+          instructions: "Uống với bữa ăn",
+          route: "Đường uống"
+        }
+      ],
+      notes: "Theo dõi huyết áp hàng tuần"
+    }
+  ];
+
+  const sampleServiceOrders = [
+    {
+      id: "SO001",
+      serviceName: "Khám tim mạch chuyên sâu",
+      category: "consultation" as const,
+      orderBy: "BS. Trần Thị Bình",
+      orderDate: "2025-05-28",
+      scheduledDate: "2025-06-05",
+      status: "scheduled" as const,
+      priority: "normal" as const,
+      cost: "350,000",
+      department: "Tim mạch",
+      notes: "Tái khám sau điều trị tăng huyết áp"
+    }
+  ];
+
+  const handleAddClinicalOrder = () => {
+    console.log('Add clinical order');
+  };
+
+  const handleViewClinicalResult = (result: any) => {
+    console.log('View clinical result:', result);
+  };
+
+  const handleAddPrescription = () => {
+    console.log('Add prescription');
+  };
+
+  const handleViewPrescription = (prescription: any) => {
+    console.log('View prescription:', prescription);
+  };
+
+  const handleAddServiceOrder = () => {
+    console.log('Add service order');
+  };
+
+  const handleViewServiceOrder = (order: any) => {
+    console.log('View service order:', order);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -166,6 +282,32 @@ const MedicalRecordDetail = ({ record, onEdit, onClose }: MedicalRecordDetailPro
           </CardContent>
         </Card>
       )}
+
+      {/* Clinical Orders */}
+      <ClinicalOrders 
+        orders={sampleClinicalOrders}
+        onAddOrder={handleAddClinicalOrder}
+      />
+
+      {/* Clinical Results */}
+      <ClinicalResults 
+        results={sampleClinicalResults}
+        onViewResult={handleViewClinicalResult}
+      />
+
+      {/* Prescriptions */}
+      <PrescriptionSection 
+        prescriptions={samplePrescriptions}
+        onAddPrescription={handleAddPrescription}
+        onViewPrescription={handleViewPrescription}
+      />
+
+      {/* Service Orders */}
+      <ServiceOrders 
+        orders={sampleServiceOrders}
+        onAddOrder={handleAddServiceOrder}
+        onViewOrder={handleViewServiceOrder}
+      />
 
       {/* Notes */}
       {record.notes && (
