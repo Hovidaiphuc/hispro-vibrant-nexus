@@ -68,7 +68,7 @@ const MedicalRecordSearch = ({ filters, onFiltersChange, onClearFilters }: Medic
                   <SelectValue placeholder="Tất cả khoa" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả khoa</SelectItem>
+                  <SelectItem value="all">Tất cả khoa</SelectItem>
                   <SelectItem value="cardiology">Tim mạch</SelectItem>
                   <SelectItem value="internal">Nội khoa</SelectItem>
                   <SelectItem value="surgery">Ngoại khoa</SelectItem>
@@ -84,7 +84,7 @@ const MedicalRecordSearch = ({ filters, onFiltersChange, onClearFilters }: Medic
                   <SelectValue placeholder="Tất cả bác sĩ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả bác sĩ</SelectItem>
+                  <SelectItem value="all">Tất cả bác sĩ</SelectItem>
                   <SelectItem value="dr1">BS. Trần Thị Bình</SelectItem>
                   <SelectItem value="dr2">BS. Nguyễn Văn Dũng</SelectItem>
                   <SelectItem value="dr3">BS. Phạm Thị Giang</SelectItem>
@@ -99,7 +99,7 @@ const MedicalRecordSearch = ({ filters, onFiltersChange, onClearFilters }: Medic
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="completed">Hoàn thành</SelectItem>
                   <SelectItem value="pending">Đang xử lý</SelectItem>
                 </SelectContent>
@@ -113,7 +113,7 @@ const MedicalRecordSearch = ({ filters, onFiltersChange, onClearFilters }: Medic
                   <SelectValue placeholder="Tất cả loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value="general">Khám tổng quát</SelectItem>
                   <SelectItem value="specialist">Khám chuyên khoa</SelectItem>
                   <SelectItem value="emergency">Khám cấp cứu</SelectItem>

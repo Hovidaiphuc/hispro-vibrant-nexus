@@ -79,12 +79,12 @@ const MedicalRecordsPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [searchFilters, setSearchFilters] = useState({
     searchTerm: '',
-    department: '',
-    doctor: '',
-    status: '',
+    department: 'all',
+    doctor: 'all',
+    status: 'all',
     dateFrom: '',
     dateTo: '',
-    recordType: ''
+    recordType: 'all'
   });
 
   const handleCreateRecord = (data: any) => {
@@ -105,12 +105,12 @@ const MedicalRecordsPage = () => {
   const handleClearFilters = () => {
     setSearchFilters({
       searchTerm: '',
-      department: '',
-      doctor: '',
-      status: '',
+      department: 'all',
+      doctor: 'all',
+      status: 'all',
       dateFrom: '',
       dateTo: '',
-      recordType: ''
+      recordType: 'all'
     });
   };
 
