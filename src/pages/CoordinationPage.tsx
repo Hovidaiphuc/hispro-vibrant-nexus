@@ -102,7 +102,7 @@ const CoordinationPage = () => {
                         <Clock className="w-4 h-4 mr-1" />
                         {item.waitTime}
                       </div>
-                      <Badge size="sm" variant={
+                      <Badge variant={
                         item.priority === 'high' ? 'destructive' :
                         item.priority === 'normal' ? 'default' : 'secondary'
                       }>
