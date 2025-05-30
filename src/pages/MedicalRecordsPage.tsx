@@ -1,9 +1,15 @@
 
+import React, { useState } from 'react';
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { FileText, Plus, Search, Filter, Calendar, User, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import MedicalRecordForm from "@/components/medical-records/MedicalRecordForm";
+import MedicalRecordDetail from "@/components/medical-records/MedicalRecordDetail";
+import MedicalRecordSearch from "@/components/medical-records/MedicalRecordSearch";
 
 const medicalRecords = [
   {
@@ -15,7 +21,16 @@ const medicalRecords = [
     department: "Tim mạch",
     date: "2025-05-28",
     status: "completed",
-    type: "Khám tổng quát"
+    type: "Khám tổng quát",
+    symptoms: "Đau đầu, chóng mặt, mệt mỏi",
+    treatment: "Thuốc hạ huyết áp, chế độ ăn ít muối",
+    notes: "Bệnh nhân cần theo dõi huyết áp thường xuyên",
+    vitals: {
+      bloodPressure: "150/90",
+      heartRate: "72 bpm",
+      temperature: "36.5°C",
+      weight: "70 kg"
+    }
   },
   {
     id: "HS002",
@@ -26,7 +41,15 @@ const medicalRecords = [
     department: "Nội khoa",
     date: "2025-05-27",
     status: "pending",
-    type: "Khám chuyên khoa"
+    type: "Khám chuyên khoa",
+    symptoms: "Đau bụng, buồn nôn, khó tiêu",
+    treatment: "Thuốc bảo vệ dạ dày, chế độ ăn nhẹ",
+    vitals: {
+      bloodPressure: "120/80",
+      heartRate: "68 bpm",
+      temperature: "36.8°C",
+      weight: "55 kg"
+    }
   },
   {
     id: "HS003",
@@ -37,11 +60,60 @@ const medicalRecords = [
     department: "Ngoại khoa",
     date: "2025-05-26",
     status: "completed",
-    type: "Khám cấp cứu"
+    type: "Khám cấp cứu",
+    symptoms: "Đau tay, sưng tấy, không thể cử động",
+    treatment: "Nẹp xương, thuốc giảm đau",
+    notes: "Tái khám sau 2 tuần",
+    vitals: {
+      bloodPressure: "130/85",
+      heartRate: "75 bpm",
+      temperature: "36.2°C",
+      weight: "68 kg"
+    }
   }
 ];
 
 const MedicalRecordsPage = () => {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({
+    searchTerm: '',
+    department: '',
+    doctor: '',
+    status: '',
+    dateFrom: '',
+    dateTo: '',
+    recordType: ''
+  });
+
+  const handleCreateRecord = (data: any) => {
+    console.log('Creating new medical record:', data);
+    setShowCreateForm(false);
+  };
+
+  const handleViewRecord = (record: any) => {
+    setSelectedRecord(record);
+    setShowDetailModal(true);
+  };
+
+  const handleEditRecord = () => {
+    setShowDetailModal(false);
+    setShowCreateForm(true);
+  };
+
+  const handleClearFilters = () => {
+    setSearchFilters({
+      searchTerm: '',
+      department: '',
+      doctor: '',
+      status: '',
+      dateFrom: '',
+      dateTo: '',
+      recordType: ''
+    });
+  };
+
   return (
     <Layout 
       title="Hồ sơ Bệnh án" 
@@ -50,17 +122,20 @@ const MedicalRecordsPage = () => {
       <div className="space-y-6">
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-4">
-          <Button className="bg-medical-green hover:bg-medical-green/90">
+          <Button 
+            className="bg-medical-green hover:bg-medical-green/90"
+            onClick={() => setShowCreateForm(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Tạo hồ sơ mới
           </Button>
           <Button variant="outline">
             <Search className="w-4 h-4 mr-2" />
-            Tìm kiếm hồ sơ
+            Tìm kiếm nâng cao
           </Button>
           <Button variant="outline">
             <Filter className="w-4 h-4 mr-2" />
-            Lọc theo loại
+            Xuất báo cáo
           </Button>
         </div>
 
@@ -103,6 +178,13 @@ const MedicalRecordsPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Search and Filter */}
+        <MedicalRecordSearch
+          filters={searchFilters}
+          onFiltersChange={setSearchFilters}
+          onClearFilters={handleClearFilters}
+        />
 
         {/* Medical Records List */}
         <Card>
@@ -147,7 +229,11 @@ const MedicalRecordsPage = () => {
                     <Badge variant={record.status === 'completed' ? 'default' : 'secondary'}>
                       {record.status === 'completed' ? 'Hoàn thành' : 'Đang xử lý'}
                     </Badge>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewRecord(record)}
+                    >
                       <Eye className="w-4 h-4 mr-1" />
                       Xem chi tiết
                     </Button>
@@ -160,6 +246,37 @@ const MedicalRecordsPage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Create Medical Record Drawer */}
+        <Drawer open={showCreateForm} onOpenChange={setShowCreateForm}>
+          <DrawerContent className="max-h-[90vh] overflow-y-auto">
+            <DrawerHeader>
+              <DrawerTitle className="text-medical-green">Tạo hồ sơ bệnh án mới</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-6">
+              <MedicalRecordForm
+                onSubmit={handleCreateRecord}
+                onCancel={() => setShowCreateForm(false)}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        {/* Medical Record Detail Dialog */}
+        <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Chi tiết hồ sơ bệnh án</DialogTitle>
+            </DialogHeader>
+            {selectedRecord && (
+              <MedicalRecordDetail
+                record={selectedRecord}
+                onEdit={handleEditRecord}
+                onClose={() => setShowDetailModal(false)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
