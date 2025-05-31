@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,24 +160,6 @@ const MedicalRecordForm = ({ onSubmit, onCancel, initialData, mode = 'create' }:
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleAddClinicalOrder = () => {
-    const newOrder = {
-      id: `CO${Date.now()}`,
-      type: "lab" as const,
-      name: "Xét nghiệm mới",
-      orderBy: formData.doctor || "BS. Chưa xác định",
-      orderDate: new Date().toISOString().split('T')[0],
-      status: "pending" as const,
-      priority: "normal" as const,
-      notes: ""
-    };
-    setClinicalOrders(prev => [...prev, newOrder]);
-    toast({
-      title: "Thêm chỉ định",
-      description: "Đã thêm chỉ định cận lâm sàng mới"
-    });
   };
 
   const handleAddPrescription = () => {
@@ -414,10 +395,11 @@ const MedicalRecordForm = ({ onSubmit, onCancel, initialData, mode = 'create' }:
         </CardContent>
       </Card>
 
-      {/* Clinical Orders */}
+      {/* Clinical Orders - Now with enhanced functionality */}
       <ClinicalOrders 
         orders={clinicalOrders} 
-        onAddOrder={handleAddClinicalOrder} 
+        onOrdersChange={setClinicalOrders}
+        doctorName={formData.doctor}
       />
 
       {/* Clinical Results */}
