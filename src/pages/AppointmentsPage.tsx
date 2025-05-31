@@ -2,43 +2,63 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, User, Phone, Plus, Search, Filter } from "lucide-react";
+import { Calendar, Clock, User, Phone, Plus, Search, Filter, Edit, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-const appointments = [
-  {
-    id: 1,
-    patient: "Nguyễn Văn An",
-    time: "08:30",
-    date: "2025-05-30",
-    doctor: "BS. Trần Thị Bình",
-    department: "Tim mạch",
-    status: "confirmed",
-    phone: "0123456789"
-  },
-  {
-    id: 2,
-    patient: "Lê Thị Cúc",
-    time: "09:00",
-    date: "2025-05-30",
-    doctor: "BS. Nguyễn Văn Dũng",
-    department: "Nội khoa",
-    status: "waiting",
-    phone: "0987654321"
-  },
-  {
-    id: 3,
-    patient: "Trần Văn Em",
-    time: "09:30",
-    date: "2025-05-30",
-    doctor: "BS. Phạm Thị Giang",
-    department: "Ngoại khoa",
-    status: "cancelled",
-    phone: "0456789123"
-  }
-];
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AppointmentForm } from "@/components/appointments/AppointmentForm";
+import { AppointmentStatusModal } from "@/components/appointments/AppointmentStatusModal";
+import { useAppointments } from "@/hooks/useAppointments";
+import { useToast } from "@/hooks/use-toast";
 
 const AppointmentsPage = () => {
+  const { 
+    appointments, 
+    isFormOpen, 
+    isStatusModalOpen,
+    selectedAppointment,
+    addAppointment,
+    updateAppointment,
+    deleteAppointment,
+    openForm,
+    closeForm,
+    openStatusModal,
+    closeStatusModal
+  } = useAppointments();
+
+  const { toast } = useToast();
+
+  const handleAddAppointment = (appointmentData: any) => {
+    addAppointment(appointmentData);
+    toast({
+      title: "Thành công",
+      description: "Đã tạo lịch hẹn mới"
+    });
+  };
+
+  const handleUpdateAppointment = (id: number, appointmentData: any) => {
+    updateAppointment(id, appointmentData);
+    toast({
+      title: "Thành công", 
+      description: "Đã cập nhật lịch hẹn"
+    });
+  };
+
+  const handleUpdateStatus = (id: number, status: any, notes?: string) => {
+    updateAppointment(id, { status, notes });
+    toast({
+      title: "Thành công",
+      description: "Đã cập nhật trạng thái lịch hẹn"
+    });
+  };
+
+  const handleDeleteAppointment = (id: number) => {
+    deleteAppointment(id);
+    toast({
+      title: "Thành công",
+      description: "Đã xóa lịch hẹn"
+    });
+  };
+
   return (
     <Layout 
       title="Quản lý Lịch hẹn" 
@@ -47,7 +67,10 @@ const AppointmentsPage = () => {
       <div className="space-y-6">
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-4">
-          <Button className="bg-medical-blue hover:bg-medical-blue-dark">
+          <Button 
+            className="bg-medical-blue hover:bg-medical-blue-dark"
+            onClick={() => openForm()}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Tạo lịch hẹn mới
           </Button>
@@ -68,16 +91,20 @@ const AppointmentsPage = () => {
               <CardTitle className="text-sm font-medium text-gray-600">Hôm nay</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-medical-blue">156</div>
+              <div className="text-2xl font-bold text-medical-blue">
+                {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length}
+              </div>
               <p className="text-xs text-medical-green">+12% từ hôm qua</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Tuần này</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Đã xác nhận</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-medical-green">892</div>
+              <div className="text-2xl font-bold text-medical-green">
+                {appointments.filter(a => a.status === 'confirmed').length}
+              </div>
               <p className="text-xs text-medical-green">+8% từ tuần trước</p>
             </CardContent>
           </Card>
@@ -86,7 +113,9 @@ const AppointmentsPage = () => {
               <CardTitle className="text-sm font-medium text-gray-600">Đã hủy</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-medical-red">23</div>
+              <div className="text-2xl font-bold text-medical-red">
+                {appointments.filter(a => a.status === 'cancelled').length}
+              </div>
               <p className="text-xs text-medical-red">-5% từ tuần trước</p>
             </CardContent>
           </Card>
@@ -95,7 +124,9 @@ const AppointmentsPage = () => {
               <CardTitle className="text-sm font-medium text-gray-600">Hoàn thành</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-medical-green">1,234</div>
+              <div className="text-2xl font-bold text-medical-green">
+                {appointments.filter(a => a.status === 'completed').length}
+              </div>
               <p className="text-xs text-medical-green">+15% từ tháng trước</p>
             </CardContent>
           </Card>
@@ -104,8 +135,8 @@ const AppointmentsPage = () => {
         {/* Appointments List */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-medical-blue">Lịch hẹn hôm nay</CardTitle>
-            <CardDescription>Danh sách các cuộc hẹn trong ngày</CardDescription>
+            <CardTitle className="text-medical-blue">Lịch hẹn</CardTitle>
+            <CardDescription>Danh sách các cuộc hẹn</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -132,19 +163,45 @@ const AppointmentsPage = () => {
                         </div>
                       </div>
                       <p className="text-sm text-gray-500">{appointment.doctor} - {appointment.department}</p>
+                      {appointment.reason && (
+                        <p className="text-sm text-gray-500">Lý do: {appointment.reason}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant={
                       appointment.status === 'confirmed' ? 'default' :
-                      appointment.status === 'waiting' ? 'secondary' : 'destructive'
+                      appointment.status === 'waiting' ? 'secondary' : 
+                      appointment.status === 'completed' ? 'default' : 'destructive'
                     }>
                       {appointment.status === 'confirmed' ? 'Đã xác nhận' :
-                       appointment.status === 'waiting' ? 'Đang chờ' : 'Đã hủy'}
+                       appointment.status === 'waiting' ? 'Đang chờ' :
+                       appointment.status === 'completed' ? 'Hoàn thành' : 'Đã hủy'}
                     </Badge>
-                    <Button size="sm" variant="outline">
-                      Chi tiết
-                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="ghost">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => openForm(appointment)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openStatusModal(appointment)}>
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Đổi trạng thái
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteAppointment(appointment.id)}
+                          className="text-red-600"
+                        >
+                          Xóa lịch hẹn
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
@@ -152,6 +209,21 @@ const AppointmentsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AppointmentForm
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSubmit={handleAddAppointment}
+        onUpdate={handleUpdateAppointment}
+        appointment={selectedAppointment}
+      />
+
+      <AppointmentStatusModal
+        isOpen={isStatusModalOpen}
+        onClose={closeStatusModal}
+        onUpdateStatus={handleUpdateStatus}
+        appointment={selectedAppointment}
+      />
     </Layout>
   );
 };
