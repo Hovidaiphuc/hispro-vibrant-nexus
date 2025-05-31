@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -62,7 +61,7 @@ export const AppointmentForm = ({
     department: '',
     reason: '',
     notes: '',
-    status: 'waiting' as const
+    status: 'waiting' as Appointment['status']
   });
 
   useEffect(() => {
@@ -88,7 +87,7 @@ export const AppointmentForm = ({
         department: '',
         reason: '',
         notes: '',
-        status: 'waiting'
+        status: 'waiting' as Appointment['status']
       });
     }
   }, [appointment]);
