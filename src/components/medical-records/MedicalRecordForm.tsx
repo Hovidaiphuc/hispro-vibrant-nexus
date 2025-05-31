@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,17 +7,52 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, UserIcon, ClipboardIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import ClinicalOrders from './ClinicalOrders';
 import ClinicalResults from './ClinicalResults';
 import PrescriptionSection from './PrescriptionSection';
 import ServiceOrders from './ServiceOrders';
 
+interface MedicalRecord {
+  id?: string;
+  patientId: string;
+  patientName: string;
+  age: string;
+  gender: string;
+  phone: string;
+  doctor: string;
+  department: string;
+  diagnosis: string;
+  symptoms: string;
+  treatment: string;
+  examDate: string;
+  recordType: string;
+  notes: string;
+  patient?: string;
+  date?: string;
+  status?: string;
+  type?: string;
+  vitals?: {
+    bloodPressure: string;
+    heartRate: string;
+    temperature: string;
+    weight: string;
+  };
+  clinicalOrders?: any[];
+  clinicalResults?: any[];
+  prescriptions?: any[];
+  serviceOrders?: any[];
+}
+
 interface MedicalRecordFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  initialData?: MedicalRecord;
+  mode?: 'create' | 'edit';
 }
 
-const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
+const MedicalRecordForm = ({ onSubmit, onCancel, initialData, mode = 'create' }: MedicalRecordFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     patientId: '',
     patientName: '',
@@ -38,6 +73,33 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
   const [clinicalResults, setClinicalResults] = useState<any[]>([]);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [serviceOrders, setServiceOrders] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load initial data when editing
+  useEffect(() => {
+    if (initialData && mode === 'edit') {
+      setFormData({
+        patientId: initialData.patientId || '',
+        patientName: initialData.patientName || initialData.patient || '',
+        age: initialData.age || '',
+        gender: initialData.gender || '',
+        phone: initialData.phone || '',
+        doctor: initialData.doctor || '',
+        department: initialData.department || '',
+        diagnosis: initialData.diagnosis || '',
+        symptoms: initialData.symptoms || '',
+        treatment: initialData.treatment || '',
+        examDate: initialData.examDate || initialData.date || '',
+        recordType: initialData.recordType || initialData.type || '',
+        notes: initialData.notes || ''
+      });
+      
+      setClinicalOrders(initialData.clinicalOrders || []);
+      setClinicalResults(initialData.clinicalResults || []);
+      setPrescriptions(initialData.prescriptions || []);
+      setServiceOrders(initialData.serviceOrders || []);
+    }
+  }, [initialData, mode]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -46,46 +108,145 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = () => {
+    const requiredFields = ['patientName', 'doctor', 'department', 'diagnosis', 'examDate'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Thông tin thiếu",
+        description: "Vui lòng điền đầy đủ thông tin bắt buộc",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const completeData = {
-      ...formData,
-      clinicalOrders,
-      clinicalResults,
-      prescriptions,
-      serviceOrders
-    };
-    onSubmit(completeData);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const completeData = {
+        ...formData,
+        id: initialData?.id,
+        clinicalOrders,
+        clinicalResults,
+        prescriptions,
+        serviceOrders,
+        status: initialData?.status || 'pending',
+        patient: formData.patientName,
+        date: formData.examDate,
+        type: formData.recordType
+      };
+      
+      await onSubmit(completeData);
+      
+      toast({
+        title: mode === 'create' ? "Tạo hồ sơ thành công" : "Cập nhật hồ sơ thành công",
+        description: mode === 'create' ? "Hồ sơ bệnh án đã được tạo" : "Hồ sơ bệnh án đã được cập nhật",
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi lưu hồ sơ",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddClinicalOrder = () => {
-    console.log('Thêm chỉ định cận lâm sàng');
-    // This would open a modal or form to add clinical orders
+    const newOrder = {
+      id: `CO${Date.now()}`,
+      type: "lab" as const,
+      name: "Xét nghiệm mới",
+      orderBy: formData.doctor || "BS. Chưa xác định",
+      orderDate: new Date().toISOString().split('T')[0],
+      status: "pending" as const,
+      priority: "normal" as const,
+      notes: ""
+    };
+    setClinicalOrders(prev => [...prev, newOrder]);
+    toast({
+      title: "Thêm chỉ định",
+      description: "Đã thêm chỉ định cận lâm sàng mới"
+    });
   };
 
   const handleAddPrescription = () => {
-    console.log('Thêm đơn thuốc');
-    // This would open a modal or form to add prescriptions
+    const newPrescription = {
+      id: `PR${Date.now()}`,
+      prescribedBy: formData.doctor || "BS. Chưa xác định",
+      prescribedDate: new Date().toISOString().split('T')[0],
+      status: "active" as const,
+      medications: [
+        {
+          id: `M${Date.now()}`,
+          name: "Thuốc mới",
+          dosage: "5mg",
+          frequency: "1 lần/ngày",
+          duration: "7 ngày",
+          quantity: "7 viên",
+          instructions: "Uống sau ăn",
+          route: "Đường uống"
+        }
+      ],
+      notes: ""
+    };
+    setPrescriptions(prev => [...prev, newPrescription]);
+    toast({
+      title: "Thêm đơn thuốc",
+      description: "Đã thêm đơn thuốc mới"
+    });
   };
 
   const handleAddServiceOrder = () => {
-    console.log('Thêm dịch vụ kỹ thuật');
-    // This would open a modal or form to add service orders
+    const newServiceOrder = {
+      id: `SO${Date.now()}`,
+      serviceName: "Dịch vụ mới",
+      category: "consultation" as const,
+      orderBy: formData.doctor || "BS. Chưa xác định",
+      orderDate: new Date().toISOString().split('T')[0],
+      status: "ordered" as const,
+      priority: "normal" as const,
+      cost: "0",
+      department: formData.department || "Chưa xác định",
+      notes: ""
+    };
+    setServiceOrders(prev => [...prev, newServiceOrder]);
+    toast({
+      title: "Thêm dịch vụ",
+      description: "Đã thêm dịch vụ kỹ thuật mới"
+    });
   };
 
   const handleViewResult = (result: any) => {
-    console.log('Xem chi tiết kết quả:', result);
-    // This would open a modal to view result details
+    toast({
+      title: "Chi tiết kết quả",
+      description: `Xem chi tiết: ${result.testName}`
+    });
   };
 
   const handleViewPrescription = (prescription: any) => {
-    console.log('Xem chi tiết đơn thuốc:', prescription);
-    // This would open a modal to view prescription details
+    toast({
+      title: "Chi tiết đơn thuốc",
+      description: `Xem chi tiết đơn thuốc: ${prescription.id}`
+    });
   };
 
   const handleViewServiceOrder = (order: any) => {
-    console.log('Xem chi tiết dịch vụ:', order);
-    // This would open a modal to view service order details
+    toast({
+      title: "Chi tiết dịch vụ",
+      description: `Xem chi tiết dịch vụ: ${order.serviceName}`
+    });
   };
 
   return (
@@ -110,12 +271,13 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
               />
             </div>
             <div>
-              <Label htmlFor="patientName">Họ và tên</Label>
+              <Label htmlFor="patientName">Họ và tên *</Label>
               <Input 
                 id="patientName" 
                 placeholder="Nhập họ tên bệnh nhân" 
                 value={formData.patientName}
                 onChange={(e) => handleInputChange('patientName', e.target.value)}
+                required
               />
             </div>
           </div>
@@ -132,7 +294,7 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
             </div>
             <div>
               <Label htmlFor="gender">Giới tính</Label>
-              <Select onValueChange={(value) => handleInputChange('gender', value)}>
+              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn giới tính" />
                 </SelectTrigger>
@@ -166,40 +328,41 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="doctor">Bác sĩ khám</Label>
-              <Select onValueChange={(value) => handleInputChange('doctor', value)}>
+              <Label htmlFor="doctor">Bác sĩ khám *</Label>
+              <Select value={formData.doctor} onValueChange={(value) => handleInputChange('doctor', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn bác sĩ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dr1">BS. Trần Thị Bình</SelectItem>
-                  <SelectItem value="dr2">BS. Nguyễn Văn Dũng</SelectItem>
-                  <SelectItem value="dr3">BS. Phạm Thị Giang</SelectItem>
+                  <SelectItem value="BS. Trần Thị Bình">BS. Trần Thị Bình</SelectItem>
+                  <SelectItem value="BS. Nguyễn Văn Dũng">BS. Nguyễn Văn Dũng</SelectItem>
+                  <SelectItem value="BS. Phạm Thị Giang">BS. Phạm Thị Giang</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="department">Khoa/Phòng</Label>
-              <Select onValueChange={(value) => handleInputChange('department', value)}>
+              <Label htmlFor="department">Khoa/Phòng *</Label>
+              <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn khoa" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cardiology">Tim mạch</SelectItem>
-                  <SelectItem value="internal">Nội khoa</SelectItem>
-                  <SelectItem value="surgery">Ngoại khoa</SelectItem>
-                  <SelectItem value="emergency">Cấp cứu</SelectItem>
+                  <SelectItem value="Tim mạch">Tim mạch</SelectItem>
+                  <SelectItem value="Nội khoa">Nội khoa</SelectItem>
+                  <SelectItem value="Ngoại khoa">Ngoại khoa</SelectItem>
+                  <SelectItem value="Cấp cứu">Cấp cứu</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div>
-            <Label htmlFor="diagnosis">Chẩn đoán</Label>
+            <Label htmlFor="diagnosis">Chẩn đoán *</Label>
             <Input 
               id="diagnosis" 
               placeholder="Nhập chẩn đoán" 
               value={formData.diagnosis}
               onChange={(e) => handleInputChange('diagnosis', e.target.value)}
+              required
             />
           </div>
           <div>
@@ -224,25 +387,26 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="examDate">Ngày khám</Label>
+              <Label htmlFor="examDate">Ngày khám *</Label>
               <Input 
                 id="examDate" 
                 type="date" 
                 value={formData.examDate}
                 onChange={(e) => handleInputChange('examDate', e.target.value)}
+                required
               />
             </div>
             <div>
               <Label htmlFor="recordType">Loại hồ sơ</Label>
-              <Select onValueChange={(value) => handleInputChange('recordType', value)}>
+              <Select value={formData.recordType} onValueChange={(value) => handleInputChange('recordType', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">Khám tổng quát</SelectItem>
-                  <SelectItem value="specialist">Khám chuyên khoa</SelectItem>
-                  <SelectItem value="emergency">Khám cấp cứu</SelectItem>
-                  <SelectItem value="follow">Tái khám</SelectItem>
+                  <SelectItem value="Khám tổng quát">Khám tổng quát</SelectItem>
+                  <SelectItem value="Khám chuyên khoa">Khám chuyên khoa</SelectItem>
+                  <SelectItem value="Khám cấp cứu">Khám cấp cứu</SelectItem>
+                  <SelectItem value="Tái khám">Tái khám</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -297,11 +461,15 @@ const MedicalRecordForm = ({ onSubmit, onCancel }: MedicalRecordFormProps) => {
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Hủy bỏ
         </Button>
-        <Button type="submit" className="bg-medical-green hover:bg-medical-green/90">
-          Lưu hồ sơ
+        <Button 
+          type="submit" 
+          className="bg-medical-green hover:bg-medical-green/90" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Đang lưu..." : (mode === 'create' ? "Lưu hồ sơ" : "Cập nhật hồ sơ")}
         </Button>
       </div>
     </form>
